@@ -1,67 +1,67 @@
-import React from 'react';
+import React, { useState, FormEvent } from 'react';
 import { FiChevronRight } from 'react-icons/fi';
+import api from '../../services/api';
 
 import { Title, Form, Repositories } from './styles';
 
 import logoImg from '../../assets/logo.svg';
 
+interface RepositoryDTO {
+  full_name: string;
+  description: string;
+  owner: {
+    login: string;
+    avatar_url: string;
+  };
+}
+
 const Dashboard: React.FC = () => {
+  const [newRepo, setNewRepo] = useState('');
+  const [repositories, setRepositories] = useState<RepositoryDTO[]>([]);
+
+  async function handleAddRepository(
+    event: FormEvent<HTMLFormElement>,
+  ): Promise<void> {
+    event.preventDefault();
+
+    const response = await api.get<RepositoryDTO>(`repos/${newRepo}`);
+
+    const repository = response.data;
+
+    setRepositories([...repositories, repository]);
+    setNewRepo('');
+  }
+
   return (
     <>
       <img src={logoImg} alt="Github Explorer" />
       <Title>Explore repositories on github</Title>
 
-      <Form>
-        <input placeholder="Put the repository name" />
+      <Form onSubmit={handleAddRepository}>
+        <input
+          value={newRepo}
+          onChange={e => setNewRepo(e.target.value)}
+          placeholder="Put the repository name"
+        />
         <button type="submit">Search</button>
       </Form>
 
       <Repositories>
-        <a href="teste">
-          <img
-            src="https://avatars0.githubusercontent.com/u/68792232?s=460&u=19e080c9c96db8bc5147069884bec16f258abcd4&v=4"
-            alt="Rafael Pérez"
-          />
+        {repositories.map(repository => (
+          <a key={repository.full_name} href="teste">
+            <img
+              src={repository.owner.avatar_url}
+              alt={repository.owner.login}
+            />
 
-          <div>
-            <strong>TwitchX</strong>
-            <p>
-              Recreation of Twitch.tv Interface using React Native & Typescript
-            </p>
-          </div>
+            <div>
+              <strong>{repository.full_name}</strong>
+              <p>{repository.description}</p>
+            </div>
 
-          <FiChevronRight size={20} />
-        </a>
-        <a href="teste">
-          <img
-            src="https://avatars0.githubusercontent.com/u/68792232?s=460&u=19e080c9c96db8bc5147069884bec16f258abcd4&v=4"
-            alt="Rafael Pérez"
-          />
-
-          <div>
-            <strong>TwitchX</strong>
-            <p>
-              Recreation of Twitch.tv Interface using React Native & Typescript
-            </p>
-          </div>
-
-          <FiChevronRight size={20} />
-        </a>
-        <a href="teste">
-          <img
-            src="https://avatars0.githubusercontent.com/u/68792232?s=460&u=19e080c9c96db8bc5147069884bec16f258abcd4&v=4"
-            alt="Rafael Pérez"
-          />
-
-          <div>
-            <strong>TwitchX</strong>
-            <p>
-              Recreation of Twitch.tv Interface using React Native & Typescript
-            </p>
-          </div>
-
-          <FiChevronRight size={20} />
-        </a>
+            <FiChevronRight size={20} />
+          </a>
+        ))}
       </Repositories>
     </>
   );
